@@ -287,6 +287,7 @@ elif tool == "Rotate PDF":
     else:
         st.info("Upload a PDF file to rotate all its pages.")
 
+
 # --- Word to PDF Functionality ---
 elif tool == "Word to PDF":
     uploaded_file = st.file_uploader("Upload a Word document to convert to PDF", type=["docx", "doc"])
@@ -299,10 +300,12 @@ elif tool == "Word to PDF":
                         tmp_word.write(uploaded_file.read())
                         tmp_word.flush()
                         word_path = tmp_word.name
+
                     # Prepare output PDF path
                     tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
                     pdf_path = tmp_pdf.name
                     tmp_pdf.close()
+
                     # Try docx2pdf (Windows only)
                     converted = False
                     if platform.system() == "Windows":
@@ -312,14 +315,19 @@ elif tool == "Word to PDF":
                             converted = True
                         except Exception as e:
                             st.warning(f"docx2pdf failed: {e}. Trying pypandoc...")
+
                     # Fallback to pypandoc (cross-platform)
                     if not converted:
                         try:
                             import pypandoc
+                            # 👉 This line is what you were missing!
+                            pypandoc.download_pandoc()
+
                             pypandoc.convert_file(word_path, 'pdf', outputfile=pdf_path)
                             converted = True
                         except Exception as e:
                             st.error(f"Conversion failed: {e}")
+
                     if converted:
                         with open(pdf_path, "rb") as f:
                             pdf_bytes = f.read()
@@ -330,13 +338,16 @@ elif tool == "Word to PDF":
                             file_name=os.path.splitext(uploaded_file.name)[0] + ".pdf",
                             mime="application/pdf"
                         )
+
                     # Clean up temp files
                     os.remove(word_path)
                     os.remove(pdf_path)
+
             except Exception as e:
                 st.error(f"An error occurred during conversion: {e}")
     else:
         st.info("Upload a Word (.docx or .doc) file to convert to PDF.")
+
 
 # --- PDF to Word Functionality ---
 elif tool == "PDF to Word":
